@@ -17,8 +17,8 @@ func (m *MemberInfo) String() string {
 
 type Branch struct {
 	sync.RWMutex
-	Branches  map[byte]*Branch
-	LeafValue []byte
+	Branches  map[rune]*Branch
+	LeafValue []rune
 	End       bool
 	Count     int64
 }
@@ -28,7 +28,7 @@ NewBranch returns a new initialezed *Branch
 */
 func (b *Branch) NewBranch() *Branch {
 	return &Branch{
-		Branches: make(map[byte]*Branch),
+		Branches: make(map[rune]*Branch),
 		Count:    0,
 	}
 }
@@ -36,7 +36,7 @@ func (b *Branch) NewBranch() *Branch {
 /*
 Add adds an entry to the Branch
 */
-func (b *Branch) add(entry []byte) (addedBranch *Branch) {
+func (b *Branch) add(entry []rune) (addedBranch *Branch) {
 	if b.LeafValue == nil && len(b.Branches) == 0 {
 		if len(entry) > 0 {
 			b.LeafValue = entry
@@ -51,7 +51,7 @@ func (b *Branch) add(entry []byte) (addedBranch *Branch) {
 	}
 
 	// check the overlap between the current LeafValue and the new entry
-	newLeaf := func(LeafValue, newEntry []byte) (leaf []byte) {
+	newLeaf := func(LeafValue, newEntry []rune) (leaf []rune) {
 		for li, b := range LeafValue {
 			if li > len(newEntry)-1 {
 				break
@@ -122,7 +122,7 @@ func (b *Branch) add(entry []byte) (addedBranch *Branch) {
 /*
 Members returns slice of all Members of the Branch prepended with `branchPrefix`
 */
-func (b *Branch) members(branchPrefix []byte) (members []*MemberInfo) {
+func (b *Branch) members(branchPrefix []rune) (members []*MemberInfo) {
 	if b.End {
 		members = append(members, &MemberInfo{string(append(branchPrefix, b.LeafValue...)), b.Count})
 	}
@@ -136,7 +136,7 @@ func (b *Branch) members(branchPrefix []byte) (members []*MemberInfo) {
 /*
 prefixMembers returns a slice of all Members of the Branch matching the given prefix. The values returned are prepended with `branchPrefix`
 */
-func (b *Branch) prefixMembers(branchPrefix []byte, searchPrefix []byte) (members []*MemberInfo) {
+func (b *Branch) prefixMembers(branchPrefix []rune, searchPrefix []rune) (members []*MemberInfo) {
 	exists, br, matchedPrefix := b.hasPrefixBranch(searchPrefix)
 	if exists {
 		members = br.members(matchedPrefix)
@@ -144,7 +144,7 @@ func (b *Branch) prefixMembers(branchPrefix []byte, searchPrefix []byte) (member
 	return
 }
 
-// func (b *Branch) prefixMembers(branchPrefix []byte, searchPrefix []byte) (members []*MemberInfo) {
+// func (b *Branch) prefixMembers(branchPrefix []rune, searchPrefix []rune) (members []*MemberInfo) {
 // 	leafLen := len(b.LeafValue)
 // 	searchPrefixLen := len(searchPrefix)
 
@@ -159,7 +159,7 @@ func (b *Branch) prefixMembers(branchPrefix []byte, searchPrefix []byte) (member
 // 	// if searchPrefixLen < leafLen {
 // 	if searchPrefixLen > leafLen {
 // 		for idx, br := range b.Branches {
-// 			// does it match the next byte?
+// 			// does it match the next rune?
 // 			if idx == searchPrefix[leafLen] {
 // 				newSearchPrefix := searchPrefix[leafLen+1:]
 // 				members = append(members, br.prefixMembers(append(append(branchPrefix, b.LeafValue...), idx), newSearchPrefix)...)
@@ -188,7 +188,7 @@ func (b *Branch) prefixMembers(branchPrefix []byte, searchPrefix []byte) (member
 
 /*
  */
-func (b *Branch) delete(entry []byte) (deleted bool) {
+func (b *Branch) delete(entry []rune) (deleted bool) {
 	leafLen := len(b.LeafValue)
 	entryLen := len(entry)
 	// does the leafValue match?
@@ -247,14 +247,14 @@ func (b *Branch) delete(entry []byte) (deleted bool) {
 
 /*
  */
-func (b *Branch) has(entry []byte) bool {
+func (b *Branch) has(entry []rune) bool {
 	if b.getBranch(entry) != nil {
 		return true
 	}
 	return false
 }
 
-func (b *Branch) hasCount(entry []byte) (bool, int64) {
+func (b *Branch) hasCount(entry []rune) (bool, int64) {
 	br := b.getBranch(entry)
 	if br != nil {
 		return true, br.Count
@@ -262,7 +262,7 @@ func (b *Branch) hasCount(entry []byte) (bool, int64) {
 	return false, 0
 }
 
-func (b *Branch) getBranch(entry []byte) (be *Branch) {
+func (b *Branch) getBranch(entry []rune) (be *Branch) {
 	leafLen := len(b.LeafValue)
 	entryLen := len(entry)
 
@@ -290,12 +290,12 @@ func (b *Branch) getBranch(entry []byte) (be *Branch) {
 
 /*
  */
-func (b *Branch) hasPrefix(prefix []byte) bool {
+func (b *Branch) hasPrefix(prefix []rune) bool {
 	exists, _, _ := b.hasPrefixBranch(prefix)
 	return exists
 }
 
-func (b *Branch) hasPrefixCount(prefix []byte) (exists bool, count int64) {
+func (b *Branch) hasPrefixCount(prefix []rune) (exists bool, count int64) {
 	exists, br, _ := b.hasPrefixBranch(prefix)
 	if exists {
 		count = br.sumCount()
@@ -303,11 +303,11 @@ func (b *Branch) hasPrefixCount(prefix []byte) (exists bool, count int64) {
 	return
 }
 
-func (b *Branch) hasPrefixBranch(prefix []byte) (exists bool, branch *Branch, matchedPrefix []byte) {
+func (b *Branch) hasPrefixBranch(prefix []rune) (exists bool, branch *Branch, matchedPrefix []rune) {
 	leafLen := len(b.LeafValue)
 	prefixLen := len(prefix)
 	exists = false
-	var pref []byte
+	var pref []rune
 
 	if leafLen > 0 {
 		if prefixLen <= leafLen {
@@ -385,7 +385,7 @@ func (b *Branch) Dump(depth int) (out string) {
 
 /*
  */
-func (b *Branch) hasBranch(idx byte) bool {
+func (b *Branch) hasBranch(idx rune) bool {
 	if _, present := b.Branches[idx]; present {
 		return true
 	}
@@ -394,7 +394,7 @@ func (b *Branch) hasBranch(idx byte) bool {
 
 /*
  */
-// func (b *Branch) matchesLeaf(entry []byte) bool {
+// func (b *Branch) matchesLeaf(entry []rune) bool {
 // 	leafLen := len(b.LeafValue)
 // 	entryLen := len(entry)
 
@@ -418,7 +418,7 @@ func (b *Branch) pullUp() *Branch {
 	if len(b.Branches) == 1 {
 		for k, nextBranch := range b.Branches {
 			if len(nextBranch.Branches) == 0 {
-				b.LeafValue = append(b.LeafValue, append([]byte{k}, nextBranch.LeafValue...)...)
+				b.LeafValue = append(b.LeafValue, append([]rune{k}, nextBranch.LeafValue...)...)
 			} else {
 				b.LeafValue = append(b.LeafValue, k)
 			}

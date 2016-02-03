@@ -433,6 +433,7 @@ func TestTrieHasPrefixManyMultibyte(t *testing.T) {
 	tr.Add("日本語学校")
 	tr.Add("学校")
 	tr.Add("日本語")
+    fmt.Println(tr)
 	if tr.HasPrefix("ä") {
 		t.Error("Expected no prefix ä")
 	}

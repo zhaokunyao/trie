@@ -22,7 +22,7 @@ NewTrie returns the pointer to a new Trie with an initialized root Branch
 func NewTrie() *Trie {
 	t := &Trie{
 		Root: &Branch{
-			Branches: make(map[byte]*Branch),
+			Branches: make(map[rune]*Branch),
 		},
 	}
 	return t
@@ -34,7 +34,7 @@ was made at - or rather where the end of the entry was marked.
 */
 func (t *Trie) Add(entry string) *Branch {
 	t.Root.Lock()
-	b := t.Root.add([]byte(entry))
+	b := t.Root.add([]rune(entry))
 	t.Root.Unlock()
 	return b
 }
@@ -51,7 +51,7 @@ func (t *Trie) Delete(entry string) bool {
 		return false
 	}
 	t.Root.Lock()
-	deleted := t.Root.delete([]byte(entry))
+	deleted := t.Root.delete([]rune(entry))
 	t.Root.Unlock()
 	return deleted
 }
@@ -60,14 +60,14 @@ func (t *Trie) Delete(entry string) bool {
 GetBranch returns the branch end if the `entry` exists in the `Trie`
 */
 func (t *Trie) GetBranch(entry string) *Branch {
-	return t.Root.getBranch([]byte(entry))
+	return t.Root.getBranch([]rune(entry))
 }
 
 /*
 Has returns true if the `entry` exists in the `Trie`
 */
 func (t *Trie) Has(entry string) bool {
-	return t.Root.has([]byte(entry))
+	return t.Root.has([]rune(entry))
 }
 
 /*
@@ -75,14 +75,14 @@ HasCount returns true  if the `entry` exists in the `Trie`. The second returned
 value is the count how often the entry has been set.
 */
 func (t *Trie) HasCount(entry string) (exists bool, count int64) {
-	return t.Root.hasCount([]byte(entry))
+	return t.Root.hasCount([]rune(entry))
 }
 
 /*
 HasPrefix returns true if the the `Trie` contains entries with the given prefix
 */
 func (t *Trie) HasPrefix(prefix string) bool {
-	return t.Root.hasPrefix([]byte(prefix))
+	return t.Root.hasPrefix([]rune(prefix))
 }
 
 /*
@@ -90,21 +90,21 @@ HasPrefixCount returns true if the the `Trie` contains entries with the given
 prefix. The second returned value is the count how often the entry has been set.
 */
 func (t *Trie) HasPrefixCount(prefix string) (exists bool, count int64) {
-	return t.Root.hasPrefixCount([]byte(prefix))
+	return t.Root.hasPrefixCount([]rune(prefix))
 }
 
 /*
 Members returns all entries of the Trie with their counts as MemberInfo
 */
 func (t *Trie) Members() []*MemberInfo {
-	return t.Root.members([]byte{})
+	return t.Root.members([]rune{})
 }
 
 /*
 Members returns a Slice of all entries of the Trie
 */
 func (t *Trie) MembersList() (members []string) {
-	for _, mi := range t.Root.members([]byte{}) {
+	for _, mi := range t.Root.members([]rune{}) {
 		members = append(members, mi.Value)
 	}
 	return
@@ -115,7 +115,7 @@ PrefixMembers returns all entries of the Trie that have the given prefix
 with their counts as MemberInfo
 */
 func (t *Trie) PrefixMembers(prefix string) []*MemberInfo {
-	return t.Root.prefixMembers([]byte{}, []byte(prefix))
+	return t.Root.prefixMembers([]rune{}, []rune(prefix))
 }
 
 /*
@@ -123,7 +123,7 @@ PrefixMembers returns a List of all entries of the Trie that have the
 given prefix
 */
 func (t *Trie) PrefixMembersList(prefix string) (members []string) {
-	for _, mi := range t.Root.prefixMembers([]byte{}, []byte(prefix)) {
+	for _, mi := range t.Root.prefixMembers([]rune{}, []rune(prefix)) {
 		members = append(members, mi.Value)
 	}
 	return
