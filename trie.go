@@ -180,74 +180,33 @@ func (t *Trie) DumpToFile(fname string) (err error) {
 }
 
 /*
-MergeFromFile loads a gib encoded wordlist from a file and Add() them to the `Trie`.
-*/
-// TODO: write tests for merge
-func (t *Trie) MergeFromFile(fname string) (err error) {
-	entries, err := loadTrieFile(fname)
-	if err != nil {
-		return
-	}
-	log.Printf("Got %v entries\n", len(entries))
-	startTime := time.Now()
-	for _, mi := range entries {
-		b := t.GetBranch(mi.Value)
-		if b != nil {
-			b.Lock()
-			b.Count += mi.Count
-			b.Unlock()
-		} else {
-			b := t.Add(mi.Value)
-			b.Lock()
-			b.Count = mi.Count
-			b.Unlock()
-		}
-	}
-	log.Printf("merging words to index took: %v\n", time.Since(startTime))
-	return
-}
-
-/*
-LoadFromFile loads a gib encoded wordlist from a file and creates a new Trie
+LoadFromFile loads a plain wordlist from a txt file and creates a new Trie
 by Add()ing all of them.
 */
 func (t *Trie) LoadFromFile(fname string) (tr *Trie, err error) {
 	tr = NewTrie()
-	entries, err := loadTrieFile(fname)
-	if err != nil {
-		return
-	}
-	log.Printf("Got %v entries\n", len(entries))
 	startTime := time.Now()
-	for _, mi := range entries {
-		b := tr.Add(mi.Value)
-		b.Count = mi.Count
-	}
-	log.Printf("adding words to index took: %v\n", time.Since(startTime))
+
+    f, err := os.Open(fname)
+    if err != nil {
+        panic(err)
+    }
+    defer f.Close()
+
+    rd := bufio.NewReader(f)
+    count :=0
+    for {
+        line, err := rd.ReadString('\n')
+        if err != nil || io.EOF == err {
+            break
+        }
+        tr.Add(line)
+        count++
+    }
+
+
+	log.Printf("adding %d words to index took: %v\n", count, time.Since(startTime))
 
 	return
 }
 
-func loadTrieFile(fname string) (entries []*MemberInfo, err error) {
-	log.Println("Load trie from", fname)
-	f, err := os.Open(fname)
-	if err != nil {
-		err = errors.New(fmt.Sprintf("Could not open Trie file: %v", err))
-	} else {
-		defer f.Close()
-
-		buf := bufio.NewReader(f)
-		dec := gob.NewDecoder(buf)
-		if err = dec.Decode(&entries); err != nil {
-			if err == io.EOF && entries == nil {
-				log.Println("Nothing to decode. Seems the file is empty.")
-				err = nil
-			} else {
-				err = errors.New(fmt.Sprintf("Decoding error: %v", err))
-				return
-			}
-		}
-	}
-
-	return
-}
