@@ -211,7 +211,7 @@ func (t *Trie) MergeFromFile(fname string) (err error) {
 LoadFromFile loads a gib encoded wordlist from a file and creates a new Trie
 by Add()ing all of them.
 */
-func LoadFromFile(fname string) (tr *Trie, err error) {
+func (t *Trie) LoadFromFile(fname string) (tr *Trie, err error) {
 	tr = NewTrie()
 	entries, err := loadTrieFile(fname)
 	if err != nil {
